@@ -1,7 +1,6 @@
 {
   "extends": "airbnb-base",
-  "editor.formatOnPaste": false,
-  "editor.formatOnSave": true,
-  "eslint.autoFixOnSave": true,
-  "eslint.alwaysShowStatus": true
+  "rules": {
+    "allow": ["_id"]
+  }
 }
