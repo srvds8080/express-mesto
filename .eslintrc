@@ -2,5 +2,8 @@
   "extends": "airbnb-base",
   "rules": {
     "allow": ["_id"]
+  },
+  "parserOptions": {
+    "ecmaVersion": 6
   }
 }
