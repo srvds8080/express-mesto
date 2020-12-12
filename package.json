@@ -22,12 +22,12 @@
   },
   "homepage": "https://github.com/srvds8080/express-mesto#readme",
   "devDependencies": {
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
     "eslint": "^7.15.0",
     "nodemon": "^2.0.6"
   },
   "dependencies": {
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
     "express": "^4.17.1"
   }
 }
