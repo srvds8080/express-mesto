@@ -1,9 +1,10 @@
 const express = require('express');
 const path = require('path');
-const { PORT = 3000 } = process.env;
+const createError = require('http-errors');
 const usersRouter = require('./routes/users.js');
 const cardsRouter = require('./routes/cards.js');
-const createError = require('http-errors');
+
+const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
