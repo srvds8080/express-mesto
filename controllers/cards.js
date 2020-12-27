@@ -1,10 +1,48 @@
-const path = require('path');
+const Card = require('../models/card');
+// errors codes
+const {
+  REGEX_URL,
+  OK_CODE,
+  INTERNAL_SERVER_ERROR_CODE,
+  CREATE_CODE,
+  BAD_REQUEST_CODE,
+} = require('../utils/constants');
 
-const dataPath = path.join(__dirname, '..', 'data', 'cards.json');
-const getDataFromFile = require('../helpers/files');
+const getAllCards = (req, res) => {
+  Card.find({})
+    .then((cards) => res.status(OK_CODE).send(cards))
+    .catch((error) => res.status(INTERNAL_SERVER_ERROR_CODE).send(error));
+};
 
-const getAllCards = (req, res) => getDataFromFile(dataPath)
-  .then((cards) => res.status(200).send(cards))
-  .catch((error) => res.status(500).send(error));
+const createCard = (req, res) => {
+  const { name, link } = req.body;
+  const { _id } = req.user;
 
-module.exports = getAllCards;
+  if (!REGEX_URL.test(req.body.link)) {
+    res.status(BAD_REQUEST_CODE).send({ message: `${req.body.link} не является URL` });
+  } else if (!name || name.length < 2) {
+    res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
+  } else {
+    Card.create({
+      name,
+      link,
+      owner: {
+        _id,
+      },
+    })
+      .then((card) => res.status(CREATE_CODE).send({ data: card }))
+      .catch(() => {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+      });
+  }
+};
+
+const deleteCard = (req, res) => Card.findByIdAndRemove(req.params.cardId)
+  .then(() => res.status(OK_CODE).send({ message: 'card deleted' }))
+  .catch((err) => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: `На сервере произошла ошибка ${err}` }));
+
+module.exports = {
+  getAllCards,
+  createCard,
+  deleteCard,
+};
