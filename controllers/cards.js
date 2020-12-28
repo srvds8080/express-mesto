@@ -18,8 +18,8 @@ const createCard = (req, res) => {
   const { name, link } = req.body;
   const { _id } = req.user;
 
-  if (!REGEX_URL.test(req.body.link)) {
-    res.status(BAD_REQUEST_CODE).send({ message: `${req.body.link} не является URL` });
+  if (!REGEX_URL.test(link)) {
+    res.status(BAD_REQUEST_CODE).send({ message: `${link} не является URL` });
   } else if (!name || name.length < 2) {
     res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
   } else {
@@ -39,7 +39,7 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => Card.findByIdAndRemove(req.params.cardId)
   .then(() => res.status(OK_CODE).send({ message: 'card deleted' }))
-  .catch((err) => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: `На сервере произошла ошибка ${err}` }));
+  .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
 
 module.exports = {
   getAllCards,

@@ -41,4 +41,16 @@ const postUser = (req, res) => {
     .catch((error) => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: `something went wrong, error: ${error}` }));
 };
 
-module.exports = { getAllUsers, getUser, postUser };
+const updateUser = (req, res) => {
+  const { _id } = req.user;
+  const { name, about, avatar } = req.body;
+  User.findByIdAndUpdate(_id, { name, about, avatar }, { new: true })
+    .then((user) => res.status(OK_CODE).send(user))
+    .catch((error) => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: `something went wrong, error: ${error}` }));
+};
+module.exports = {
+  getAllUsers,
+  getUser,
+  postUser,
+  updateUser,
+};
