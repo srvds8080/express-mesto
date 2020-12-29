@@ -37,7 +37,9 @@ const getUser = (req, res) => {
 
 const postUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  if (!REGEX_URL.test(avatar)) {
+  if (!avatar) {
+    res.status(BAD_REQUEST_CODE).send({ message: 'Ссылка на аватар обязательна' });
+  } else if (!REGEX_URL.test(avatar)) {
     res.status(BAD_REQUEST_CODE).send({ message: `${avatar} не является URL` });
   } else if (!name || name < 2) {
     res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });

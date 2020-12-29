@@ -6,6 +6,7 @@ const {
   INTERNAL_SERVER_ERROR_CODE,
   CREATE_CODE,
   BAD_REQUEST_CODE,
+  NOTFUOND_CODE,
 } = require('../utils/constants');
 
 const getAllCards = (req, res) => {
@@ -18,10 +19,12 @@ const createCard = (req, res) => {
   const { name, link } = req.body;
   const { _id } = req.user;
 
-  if (!REGEX_URL.test(link)) {
-    res.status(BAD_REQUEST_CODE).send({ message: `${link} не является URL` });
+  if (!link) {
+    res.status(BAD_REQUEST_CODE).send({ message: 'Ссылка на изобржение обязательна' });
   } else if (!name || name.length < 2) {
     res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
+  } else if (!REGEX_URL.test(link)) {
+    res.status(BAD_REQUEST_CODE).send({ message: `${link} не является действительной ссылкой на изображение` });
   } else {
     Card.create({
       name,
@@ -31,18 +34,47 @@ const createCard = (req, res) => {
       },
     })
       .then((card) => res.status(CREATE_CODE).send({ data: card }))
-      .catch(() => {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      });
+      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
   }
 };
 
-const deleteCard = (req, res) => Card.findByIdAndRemove(req.params.cardId)
-  .then(() => res.status(OK_CODE).send({ message: 'card deleted' }))
+const deleteCard = (req, res) => Card
+  .findByIdAndRemove(req.params.cardId)
+  .then((card) => {
+    if (!card) {
+      res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
+    }
+    res.status(OK_CODE).send({ message: 'карточка удалена' });
+  })
   .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+
+const putLike = (req, res) => {
+  Card
+    .findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: [req.user._id] } }, { new: true })
+    .then((card) => {
+      if (!card) {
+        res.status(NOTFUOND_CODE).send({ message: 'Такой карточки не существует' });
+      }
+      res.status(OK_CODE).send(`\n cardLikes: ${card}`);
+    })
+    .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+};
+const removeLike = (req, res) => {
+  Card
+    .findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
+    .then((card) => {
+      if (!card) {
+        res.status(NOTFUOND_CODE).send({ message: 'Такой карточки не существует' });
+      }
+      res.status(OK_CODE).send(card);
+    })
+    .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+};
 
 module.exports = {
   getAllCards,
   createCard,
   deleteCard,
+  putLike,
+  removeLike,
 };
