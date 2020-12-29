@@ -6,6 +6,7 @@ const {
   CREATE_CODE,
   BAD_REQUEST_CODE,
   NOTFUOND_CODE,
+  REGEX_URL,
 } = require('../utils/constants');
 
 const getAllUsers = (req, res) => {
@@ -36,21 +37,47 @@ const getUser = (req, res) => {
 
 const postUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.status(CREATE_CODE).send(user))
-    .catch((error) => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: `something went wrong, error: ${error}` }));
+  if (!REGEX_URL.test(avatar)) {
+    res.status(BAD_REQUEST_CODE).send({ message: `${avatar} не является URL` });
+  } else if (!name || name < 2) {
+    res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
+  } else {
+    User.create({ name, about, avatar })
+      .then((user) => res.status(CREATE_CODE).send(user))
+      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' }));
+  }
 };
 
 const updateUser = (req, res) => {
   const { _id } = req.user;
   const { name, about, avatar } = req.body;
-  User.findByIdAndUpdate(_id, { name, about, avatar }, { new: true })
-    .then((user) => res.status(OK_CODE).send(user))
-    .catch((error) => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: `something went wrong, error: ${error}` }));
+  if (!REGEX_URL.test(avatar)) {
+    res.status(BAD_REQUEST_CODE).send({ message: `${avatar} не является URL` });
+  } else if (!name || name < 2) {
+    res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
+  } else {
+    User.findByIdAndUpdate(_id, { name, about, avatar }, { new: true })
+      .then((user) => res.status(OK_CODE).send(user))
+      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' }));
+  }
 };
+
+const updateUserAvatar = (req, res) => {
+  const { _id } = req.user;
+  const { avatar } = req.body;
+  if (!REGEX_URL.test(avatar)) {
+    res.status(BAD_REQUEST_CODE).send({ message: `${avatar} не является URL` });
+  } else {
+    User.findByIdAndUpdate(_id, { avatar }, { new: true })
+      .then((user) => res.status(OK_CODE).send(user))
+      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' }));
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUser,
   postUser,
   updateUser,
+  updateUserAvatar,
 };
