@@ -34,7 +34,12 @@ const createCard = (req, res) => {
       },
     })
       .then((card) => res.status(CREATE_CODE).send({ data: card }))
-      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+      .catch((err) => {
+        if (/Validator\sfailed\sfor\spath\s`link`/ig.test(err.message)) {
+          res.status(BAD_REQUEST_CODE).send({ message: `${link} не является действительной ссылкой на изображение` });
+        }
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+      });
   }
 };
 
