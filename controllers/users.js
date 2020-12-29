@@ -50,13 +50,11 @@ const postUser = (req, res) => {
 
 const updateUser = (req, res) => {
   const { _id } = req.user;
-  const { name, about, avatar } = req.body;
-  if (!REGEX_URL.test(avatar)) {
-    res.status(BAD_REQUEST_CODE).send({ message: `${avatar} не является URL` });
-  } else if (!name || name < 2) {
+  const { name, about } = req.body;
+  if (!name || name < 2) {
     res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
   } else {
-    User.findByIdAndUpdate(_id, { name, about, avatar }, { new: true })
+    User.findByIdAndUpdate(_id, { name, about }, { new: true })
       .then((user) => res.status(OK_CODE).send(user))
       .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' }));
   }
