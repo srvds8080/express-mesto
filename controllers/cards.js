@@ -37,6 +37,7 @@ const createCard = (req, res) => {
       .catch((err) => {
         if (/Validator\sfailed\sfor\spath\s`link`/ig.test(err.message)) {
           res.status(BAD_REQUEST_CODE).send({ message: `${link} не является действительной ссылкой на изображение` });
+          return;
         }
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
       });
@@ -44,25 +45,46 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => Card
-  .findByIdAndRemove(req.params.cardId)
+  .findById(req.params.cardId)
   .then((card) => {
     if (!card) {
       res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
+      return;
     }
-    res.status(OK_CODE).send({ message: 'карточка удалена' });
+    Card.findByIdAndRemove(req.params.cardId)
+      .then(() => {
+        res.status(OK_CODE).send({ message: 'Карточка успешно удалена' });
+      })
+      .catch(() => {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+      });
   })
-  .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
+      return;
+    }
+    res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+  });
 
 const putLike = (req, res) => {
   Card
     .findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: [req.user._id] } }, { new: true })
     .then((card) => {
       if (!card) {
-        res.status(NOTFUOND_CODE).send({ message: 'Такой карточки не существует' });
+        res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
+        return;
       }
       res.status(OK_CODE).send(`\n cardLikes: ${card}`);
     })
-    .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
+      } else if (err.name === 'NotFound') {
+        res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
+      }
+      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+    });
 };
 const removeLike = (req, res) => {
   Card
@@ -70,6 +92,7 @@ const removeLike = (req, res) => {
     .then((card) => {
       if (!card) {
         res.status(NOTFUOND_CODE).send({ message: 'Такой карточки не существует' });
+        return;
       }
       res.status(OK_CODE).send(card);
     })
