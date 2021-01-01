@@ -45,19 +45,13 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => Card
-  .findById(req.params.cardId)
+  .findByIdAndRemove(req.params.cardId)
   .then((card) => {
     if (!card) {
       res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
       return;
     }
-    Card.findByIdAndRemove(req.params.cardId)
-      .then(() => {
-        res.status(OK_CODE).send({ message: 'Карточка успешно удалена' });
-      })
-      .catch(() => {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      });
+    res.status(OK_CODE).send({ message: 'Карточка успешно удалена' });
   })
   .catch((err) => {
     if (err.name === 'CastError') {
