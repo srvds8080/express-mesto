@@ -57,8 +57,20 @@ const updateUser = (req, res) => {
     res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
   } else {
     User.findByIdAndUpdate(_id, { name, about }, { new: true })
-      .then((user) => res.status(OK_CODE).send(user))
-      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' }));
+      .then((user) => {
+        if (!user) {
+          res.status(NOTFUOND_CODE).send({ message: 'Пользователь по заданному id отсутствует в базе' });
+          return;
+        }
+        res.status(OK_CODE).send(user);
+      })
+      .catch((err) => {
+        if (err.name === 'CastError') {
+          res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
+          return;
+        }
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' });
+      });
   }
 };
 
@@ -69,8 +81,20 @@ const updateUserAvatar = (req, res) => {
     res.status(BAD_REQUEST_CODE).send({ message: `${avatar} не является URL` });
   } else {
     User.findByIdAndUpdate(_id, { avatar }, { new: true })
-      .then((user) => res.status(OK_CODE).send(user))
-      .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' }));
+      .then((user) => {
+        if (!user) {
+          res.status(NOTFUOND_CODE).send({ message: 'Пользователь по заданному id отсутствует в базе' });
+          return;
+        }
+        res.status(OK_CODE).send(user);
+      })
+      .catch((err) => {
+        if (err.name === 'CastError') {
+          res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
+          return;
+        }
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' });
+      });
   }
 };
 
