@@ -74,8 +74,7 @@ const putLike = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
-      } else if (err.name === 'NotFound') {
-        res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
+        return;
       }
       res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
     });
@@ -90,7 +89,13 @@ const removeLike = (req, res) => {
       }
       res.status(OK_CODE).send(card);
     })
-    .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
+        return;
+      }
+      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
 module.exports = {
