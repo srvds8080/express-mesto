@@ -9,6 +9,10 @@ const {
   NOTFUOND_CODE,
 } = require('../utils/constants');
 
+const {
+  catchError,
+} = require('../utils/errors');
+
 const getAllCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(OK_CODE).send(cards))
@@ -46,56 +50,41 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => Card
   .findByIdAndRemove(req.params.cardId)
-  .then((card) => {
-    if (!card) {
-      res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
-      return;
-    }
+  .orFail(() => {
+    const error = new Error('такой карточки не существует');
+    error.statusCode = NOTFUOND_CODE;
+    throw error;
+  })
+  .then(() => {
     res.status(OK_CODE).send({ message: 'Карточка успешно удалена' });
   })
-  .catch((err) => {
-    if (err.name === 'CastError') {
-      res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
-      return;
-    }
-    res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-  });
+  .catch((error) => catchError(error, res));
 
 const putLike = (req, res) => {
   Card
     .findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: [req.user._id] } }, { new: true })
-    .then((card) => {
-      if (!card) {
-        res.status(NOTFUOND_CODE).send({ message: 'такой карточки не существует' });
-        return;
-      }
-      res.status(OK_CODE).send(`\n cardLikes: ${card}`);
+    .orFail(() => {
+      const error = new Error('такой карточки не существует');
+      error.statusCode = NOTFUOND_CODE;
+      throw error;
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-    });
+    .then((card) => {
+      res.status(OK_CODE).send(card);
+    })
+    .catch((error) => catchError(error, res));
 };
 const removeLike = (req, res) => {
   Card
     .findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
+    .orFail(() => {
+      const error = new Error('такой карточки не существует');
+      error.statusCode = NOTFUOND_CODE;
+      throw error;
+    })
     .then((card) => {
-      if (!card) {
-        res.status(NOTFUOND_CODE).send({ message: 'Такой карточки не существует' });
-        return;
-      }
       res.status(OK_CODE).send(card);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-    });
+    .catch((error) => catchError(error, res));
 };
 
 module.exports = {

@@ -1,5 +1,5 @@
 const User = require('../models/user');
-// errors codes
+// errors cods
 const {
   OK_CODE,
   INTERNAL_SERVER_ERROR_CODE,
@@ -8,6 +8,10 @@ const {
   NOTFUOND_CODE,
   REGEX_URL,
 } = require('../utils/constants');
+
+const {
+  catchError,
+} = require('../utils/errors');
 
 const getAllUsers = (req, res) => {
   User.find()
@@ -24,15 +28,7 @@ const getUser = (req, res) => {
       throw error;
     })
     .then((user) => res.status(OK_CODE).send(user))
-    .catch((error) => {
-      if (error.kind === 'ObjectId') {
-        res.status(BAD_REQUEST_CODE).send({ message: `Неверный формат ID: id должен быть 24-значным шестнадцатеричным числом. ${error.reason}` });
-      } else if (error.statusCode === NOTFUOND_CODE) {
-        res.status(NOTFUOND_CODE).send({ message: error.message });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+    .catch((error) => catchError(error, res));
 };
 
 const postUser = (req, res) => {
@@ -57,20 +53,15 @@ const updateUser = (req, res) => {
     res.status(BAD_REQUEST_CODE).send({ message: 'Значение "name" обязательно и не может быть короче двух символов' });
   } else {
     User.findByIdAndUpdate(_id, { name, about }, { new: true })
+      .orFail(() => {
+        const error = new Error('Пользователь по заданному id отсутствует в базе');
+        error.statusCode = NOTFUOND_CODE;
+        throw error;
+      })
       .then((user) => {
-        if (!user) {
-          res.status(NOTFUOND_CODE).send({ message: 'Пользователь по заданному id отсутствует в базе' });
-          return;
-        }
         res.status(OK_CODE).send(user);
       })
-      .catch((err) => {
-        if (err.name === 'CastError') {
-          res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
-          return;
-        }
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' });
-      });
+      .catch((error) => catchError(error, res));
   }
 };
 
@@ -88,13 +79,7 @@ const updateUserAvatar = (req, res) => {
         }
         res.status(OK_CODE).send(user);
       })
-      .catch((err) => {
-        if (err.name === 'CastError') {
-          res.status(BAD_REQUEST_CODE).send({ message: 'переданы некоректные данные' });
-          return;
-        }
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ error: 'На сервере произошла ошибка' });
-      });
+      .catch((error) => catchError(error, res));
   }
 };
 

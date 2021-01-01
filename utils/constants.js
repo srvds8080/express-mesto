@@ -5,6 +5,7 @@ const BAD_REQUEST_CODE = 400;
 const NOTFUOND_CODE = 404;
 const INTERNAL_SERVER_ERROR_CODE = 500;
 const urlBD = 'mongodb://localhost:27017/mestodb';
+
 module.exports = {
   REGEX_URL,
   BAD_REQUEST_CODE,
