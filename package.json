@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/srvds8080/express-mesto/issues"
   },
-  "homepage": "https://github.com/srvds8080/express-mesto#readme",
+  "homepage": ".",
   "devDependencies": {
     "eslint": "^7.15.0",
     "eslint-config-airbnb-base": "^14.2.1",
